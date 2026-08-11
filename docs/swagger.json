@@ -1,0 +1,45 @@
+{
+    "schemes": [
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "API para consulta do tempo real de um CEP utilizando a API do ViaCEP e da WeatherAPI.",
+        "title": "Desafio CEP API - golang",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Luana Andrade",
+            "email": "luanaands@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "host": "deploy-cloud-run-mepu6h3qaa-uc.a.run.app",
+    "basePath": "/",
+    "paths": {
+        "/weather": {
+            "get": {
+                "description": "Retorna dados do tempo consultando ViaCEP e WeatherAPI",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CEP"
+                ],
+                "summary": "Buscar clima atual",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CEP sem formatação (ex: 01001000)",
+                        "name": "cep",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        }
+    }
+}
