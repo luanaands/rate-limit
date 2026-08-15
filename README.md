@@ -114,9 +114,9 @@ Reinicie a aplicação após alterar o arquivo. Em seguida, envie quatro
 requisições simultâneas usando o mesmo token:
 
 ```bash
-TOKEN="teste-local-$(date +%s)"
+TOKEN="teste-local-123"
 
-for i in $(seq 1 4); do
+for i in $(seq 1 5); do
   curl -sS -o /dev/null \
     -w "requisicao $i: HTTP %{http_code}\n" \
     -H "API_KEY: $TOKEN" \
@@ -132,6 +132,15 @@ mas elas não devem ser rejeitadas pelo rate limit.
 
 Para testar o limite por IP, repita o comando sem o header `API_KEY`. Nesse
 caso, as requisições serão contabilizadas pelo endereço IP do cliente.
+
+```bash
+for i in $(seq 1 5); do
+  curl -sS -o /dev/null \
+    -w "requisicao $i: HTTP %{http_code}\n" \
+    "http://localhost:8080/weather?cep=01001000" &
+done
+wait
+```
 
 ## Endpoint e Swagger
 

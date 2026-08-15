@@ -79,7 +79,7 @@ func main() {
 
 	r.Get("/weather", handler.GetCep)
 
-	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("https://deploy-cloud-run-1020181349268.us-central1.run.app/docs/doc.json")))
+	r.Get("/docs/*", httpSwagger.Handler(httpSwagger.URL("doc.json")))
 
 	http.ListenAndServe(":8080", r)
 }
