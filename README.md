@@ -157,6 +157,75 @@ VS Code.
 - `internal/infra/webserver/handlers`: handlers HTTP.
 - `docs`: documentação gerada do Swagger.
 
+## Como trocar a estratégia do Rate Limiter
+
+O rate limiter usa o padrão Strategy. O `RateLimitProcessor` recebe uma
+implementação de `RateLimiterInterface` e apenas delega a decisão para ela:
+
+```text
+request -> RateLimitProcessor -> estratégia configurada -> permitido/bloqueado
+```
+
+A interface exige somente o método `Allow`:
+
+```go
+type RateLimiterInterface interface {
+    Allow(ctx context.Context, r *http.Request) (bool, error)
+}
+```
+
+O retorno deve seguir este contrato:
+
+- `true, nil`: permite a requisição.
+- `false, nil`: bloqueia a requisição e o middleware responde `429`.
+- `false, err`: indica falha na estratégia ou em uma dependência.
+
+### Estratégia atual
+
+A aplicação usa `RateLimiterRedis`, configurado no `cmd/server/main.go`:
+
+```go
+rateLimiter := rateLimitMiddleware.NewRateLimiterConfig(
+    cfg.RateLimitTokenLimit,
+    cfg.RateLimitIPLimit,
+    cfg.RateLimitBlockDuration,
+    redisClient,
+)
+rateLimitProcessor := rateLimitMiddleware.NewRateLimitProcessor(rateLimiter)
+```
+
+### Substituindo a estratégia
+
+1. Crie uma implementação de `RateLimiterInterface`. Por exemplo, uma
+   estratégia em memória:
+
+```go
+type CustomRateLimiter struct {
+    // Estado e mutexes necessários para a regra em memória.
+}
+
+func (l *CustomRateLimiter) Allow(
+    ctx context.Context,
+    r *http.Request,
+) (bool, error) {
+    // Implemente aqui a contagem e o bloqueio da nova estratégia.
+    return true, nil // substitua pela decisão da estratégia
+}
+```
+
+2. No `cmd/server/main.go`, substitua apenas a criação da estratégia Redis:
+
+```go
+customLimiter := &CustomRateLimiter{}
+rateLimitProcessor := rateLimitMiddleware.NewRateLimitProcessor(customLimiter)
+```
+
+O middleware HTTP continua usando `rateLimitProcessor.Allow(...)`, portanto não
+é necessário alterar os handlers ou as rotas. A nova estratégia deve tratar
+concorrência, manter o contrato de `Allow` e retornar erros de suas
+dependências. Para voltar ao Redis, restaure a criação com
+`NewRateLimiterConfig(...)`.
+
 ## Contato
 
 Desenvolvido por Luana Andrade - luanaands@gmail.com
