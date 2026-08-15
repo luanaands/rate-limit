@@ -7,7 +7,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server ./cmd/server
 
 FROM scratch
-COPY --from=builder /app/server .
-COPY ./cmd/server/.env ./
+WORKDIR /app
+COPY --from=builder /app/server ./server
+COPY cmd/server/.env ./.env
 EXPOSE 8080
-ENTRYPOINT ["./server"]
+ENTRYPOINT ["/app/server"]
